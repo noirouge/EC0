@@ -2,6 +2,8 @@ import React from 'react';
 import {Text, View} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Provider } from 'react-redux';
+import store from './src/core/store';
 
 //PAGES:BEGIN
 import ConfigPage from './src/views/ConfigPage';
@@ -16,7 +18,8 @@ const Stack = createNativeStackNavigator();
 
 function App(): JSX.Element {
   return (
-   <NavigationContainer>
+<Provider store={store}>
+<NavigationContainer>
     <Stack.Navigator initialRouteName='MainPage'>
       <Stack.Screen
       name="MainPage"
@@ -45,6 +48,10 @@ function App(): JSX.Element {
       />
     </Stack.Navigator>
    </NavigationContainer>
+</Provider>
+
+
+
   );
 }
 

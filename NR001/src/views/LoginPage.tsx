@@ -1,13 +1,125 @@
-import React from 'react';
-import {Text, View} from 'react-native';
+import React, {useState} from 'react';
+import {
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
+import useDatabase from '../core/bd/useDatabase';
+import {IUser, IProps} from '../core/interface/index';
+import {useSelector, useDispatch} from 'react-redux';
+import {EUser} from '../core/enums';
+import Realm from 'realm';
 
 
-function LoginPage(): JSX.Element {
-    return(
-        <View>
-      <Text>Login Page</Text>
+function LoginPage({navigation}: IProps): JSX.Element {
+  // Realm.deleteFile({path: Realm.defaultPath});
+  const {addUser, loginUser, getAllUsers} = useDatabase();
+  const [user, setUser] = useState<IUser>({
+    username: '',
+    password: '',
+    id: '',
+  });
+  // console.log('LOGIN USERS', getAllUsers());
+  // getAllUsers();
+
+  const _user = useSelector(state => state);
+  const dispatch = useDispatch();
+
+  const uNameChange = (text: string) => {
+    console.log('NAME CHANGE', text);
+    setUser({...user, username: text});
+  };
+
+  const pwdChange = (text: string) => {
+    console.log('PWD CHANGE', text);
+    setUser({...user, password: text});
+  };
+
+  const login = () => {
+    const isLogin = loginUser(user);
+    const users: IUser[] = getAllUsers();
+    if(user.username.length === 0 || user.password.length === 0){
+      console.log("UN CAMPO ESTA VACIO");
+      return;
+    }
+    if (users.length) {
+      if (isLogin) {
+        // user.id = "WAKA";
+        dispatch({type: EUser.SET_USER, payload: user});
+        console.log('STATE', _user);
+        navigation.navigate('NotesPage');
+        // dispatch(() => clearUser());
+      } else {
+        console.log('NO');
+      }
+    } else {
+      addUser(user);
+      console.log("SE CREO UN USUARIO");
+      setUser({id: '', password: '', username: ''});
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.input}>
+        <TextInput
+          value={user.username}
+          onChangeText={uNameChange}
+          style={styles.text}
+          placeholder="USERNAME..."
+          placeholderTextColor="gray"
+        />
+      </View>
+      <View style={styles.input}>
+        <TextInput
+          value={user.password}
+          onChangeText={pwdChange}
+          style={styles.text}
+          placeholder="PASSWORD..."
+          secureTextEntry={true}
+          placeholderTextColor="gray"
+        />
+      </View>
+      <TouchableOpacity onPress={login} style={styles.btnLogin}>
+        <Text style={styles.text}>LOGIN</Text>
+      </TouchableOpacity>
     </View>
-    )
-};
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'black',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    margin: 2,
+    width: '70%',
+    borderColor: 'white',
+    borderStyle: 'solid',
+    backgroundColor: '#0C0C0C',
+  },
+  text: {
+    color: 'white',
+  },
+  btnLogin: {
+    borderColor: 'white',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    width: '70%',
+    height: 50,
+    backgroundColor: '#181616',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
 
 export default LoginPage;

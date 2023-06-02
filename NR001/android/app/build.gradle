@@ -102,6 +102,14 @@ android {
         versionName "1.0"
     }
 
+    //ADDED MANUALLY
+project.ext.vectoricons = [
+    iconFontNames: [ 'MaterialIcons.ttf', 'FontAwesome.ttf' ] // Agrega aquí los nombres de tus fuentes de iconos
+]
+
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+    ///////////////////
+
     splits {
         abi {
             reset()
