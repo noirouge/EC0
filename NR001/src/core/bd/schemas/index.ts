@@ -1,29 +1,26 @@
 const UsersSchema = {
-name: 'Users',
-properties: {
+  name: 'Users',
+  properties: {
     id: 'string',
     username: 'string',
     password: 'string',
-    createAt: 'string',
-        updateAt: 'string',
-},
-primaryKey: 'id',
+    createAt: 'date',
+    updateAt: 'date',
+  },
+  primaryKey: 'id',
 };
 
 const NotesSchema = {
-    name: 'Notes',
-    properties: {
-        id: 'string',
-        title: 'string',
-        text: 'string',
-        userId: 'string',
-        createAt: 'string',
-        updateAt: 'string',
-    },
-    primaryKey: 'id',
+  name: 'Notes',
+  properties: {
+    id: 'string',
+    title: 'string',
+    text: 'string',
+    userId: 'string',
+    createAt: 'date',
+    updateAt: 'date',
+  },
+  primaryKey: 'id',
 };
 
-
-
-
-export {UsersSchema, NotesSchema,}
+export {UsersSchema, NotesSchema};

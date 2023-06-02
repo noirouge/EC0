@@ -14,7 +14,7 @@ import Realm from 'realm';
 
 
 function LoginPage({navigation}: IProps): JSX.Element {
-  // Realm.deleteFile({path: Realm.defaultPath});
+  Realm.deleteFile({path: Realm.defaultPath});
   const {addUser, loginUser, getAllUsers} = useDatabase();
   const [user, setUser] = useState<IUser>({
     username: '',
@@ -24,7 +24,7 @@ function LoginPage({navigation}: IProps): JSX.Element {
   // console.log('LOGIN USERS', getAllUsers());
   // getAllUsers();
 
-  const _user = useSelector(state => state);
+  const _user = useSelector((state:any) => state.user);
   const dispatch = useDispatch();
 
   const uNameChange = (text: string) => {
@@ -38,7 +38,8 @@ function LoginPage({navigation}: IProps): JSX.Element {
   };
 
   const login = () => {
-    const isLogin = loginUser(user);
+    console.log("USER STORE", _user)
+    const {isLogin, user_} = loginUser(user);
     const users: IUser[] = getAllUsers();
     if(user.username.length === 0 || user.password.length === 0){
       console.log("UN CAMPO ESTA VACIO");
@@ -47,7 +48,8 @@ function LoginPage({navigation}: IProps): JSX.Element {
     if (users.length) {
       if (isLogin) {
         // user.id = "WAKA";
-        dispatch({type: EUser.SET_USER, payload: user});
+        
+        dispatch({type: EUser.SET_USER, payload: user_});
         console.log('STATE', _user);
         navigation.navigate('NotesPage');
         // dispatch(() => clearUser());
