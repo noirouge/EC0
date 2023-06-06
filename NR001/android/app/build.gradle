@@ -104,7 +104,7 @@ android {
 
     //ADDED MANUALLY
 project.ext.vectoricons = [
-    iconFontNames: [ 'MaterialIcons.ttf', 'FontAwesome.ttf' ] // Agrega aquí los nombres de tus fuentes de iconos
+    iconFontNames: [ 'MaterialIcons.ttf', 'FontAwesome.ttf', 'AntDesign.ttf' ] // Agrega aquí los nombres de tus fuentes de iconos
 ]
 
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"

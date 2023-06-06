@@ -11,16 +11,18 @@ import {IUser, IProps} from '../core/interface/index';
 import {useSelector, useDispatch} from 'react-redux';
 import {EUser} from '../core/enums';
 import Realm from 'realm';
+// import useConvert from '../hooks/useConvert';
 
 
 function LoginPage({navigation}: IProps): JSX.Element {
-  Realm.deleteFile({path: Realm.defaultPath});
+  // Realm.deleteFile({path: Realm.defaultPath});
   const {addUser, loginUser, getAllUsers} = useDatabase();
   const [user, setUser] = useState<IUser>({
     username: '',
     password: '',
     id: '',
   });
+  // const {convertStringToMb} = useConvert();
   // console.log('LOGIN USERS', getAllUsers());
   // getAllUsers();
 
@@ -28,21 +30,21 @@ function LoginPage({navigation}: IProps): JSX.Element {
   const dispatch = useDispatch();
 
   const uNameChange = (text: string) => {
-    console.log('NAME CHANGE', text);
+    // console.log('NAME CHANGE', convertStringToMb(text));
     setUser({...user, username: text});
   };
 
   const pwdChange = (text: string) => {
-    console.log('PWD CHANGE', text);
+    // console.log('PWD CHANGE', text);
     setUser({...user, password: text});
   };
 
   const login = () => {
-    console.log("USER STORE", _user)
+    // console.log("USER STORE", _user)
     const {isLogin, user_} = loginUser(user);
     const users: IUser[] = getAllUsers();
     if(user.username.length === 0 || user.password.length === 0){
-      console.log("UN CAMPO ESTA VACIO");
+      // console.log("UN CAMPO ESTA VACIO");
       return;
     }
     if (users.length) {
@@ -50,15 +52,15 @@ function LoginPage({navigation}: IProps): JSX.Element {
         // user.id = "WAKA";
         
         dispatch({type: EUser.SET_USER, payload: user_});
-        console.log('STATE', _user);
+        // console.log('STATE', _user);
         navigation.navigate('NotesPage');
         // dispatch(() => clearUser());
       } else {
-        console.log('NO');
+        // console.log('NO');
       }
     } else {
       addUser(user);
-      console.log("SE CREO UN USUARIO");
+      // console.log("SE CREO UN USUARIO");
       setUser({id: '', password: '', username: ''});
     }
   };

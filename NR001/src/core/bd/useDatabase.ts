@@ -4,6 +4,8 @@ import { IUser, INotes } from '../interface/index';
 import useGenerateID from '../../hooks/useGenerateID';
 import useEncrypter from '../../hooks/useEncrypter';
 import {EUtils} from '../enums/index';
+import useConvert from '../../hooks/useConvert';
+
 
 function useDatabase() {
   const realm = new Realm({
@@ -12,11 +14,12 @@ function useDatabase() {
   });
   const {ID} = useGenerateID();
   const {encryptText, decryptText} = useEncrypter();
+  const {convertStringToMb} = useConvert();
   // USERS:BEGIN
   const addUser = (user: IUser) => {
     const _user = <IUser>getUserByName(user);
     if (_user.username) {
-      console.log('ESTE USUARIO YA EXISTE');
+      // console.log('ESTE USUARIO YA EXISTE');
     } else {
       user.id = ID;
       user.password = encryptText(user.password, EUtils.FIRST_KEY);
@@ -57,7 +60,6 @@ function useDatabase() {
     }
   };
   const loginUser = (user: IUser) => {
-    console.log('loginUser user', user);
     const users = getAllUsers();
     let isLogin = false;
     let user_ = <IUser>{};
@@ -77,13 +79,65 @@ function useDatabase() {
   //NOTES:BEGIN
   const getAllNotes = () => {
     const notes = realm.objects(NotesSchema.name);
+    // console.log("WAKA WAKA", notes);
     return Array.from(notes);
   };
 
+  const getAllNotesByUser = (id: string) => {
+    const notes:any = getAllNotes();
+    const _notes = notes.filter((item:INotes )=> item.userId === id);
+    const listNotes = <INotes[]>[];
+   if(_notes.length){
+     _notes.forEach((element: INotes) => {
+       listNotes.push({id: element.id, title: element.title, userId: element.userId, createAt: element.createAt, updateAt: element.updateAt, text: element.text, });
+      });
+   }
+    return listNotes.sort((a:any,b:any) =>  b.updateAt.getTime() - a.updateAt.getTime());
+  }
+
   const getNoteById = (id: string) => {
-    const note = realm.objectForPrimaryKey(NotesSchema.name, id);
-    return note;
+    const note:any = <INotes>realm.objectForPrimaryKey(NotesSchema.name, id);
+    const _note = <INotes>{id: note.id, title: note.title, userId: note.userId, createAt: note.createAt, updateAt: note.updateAt,text: decryptText(note.text, EUtils.SECOND_KEY)};
+    return _note;
   };
+
+  const addNote = (note: INotes) => {
+note.id = ID;
+const date = new Date();
+note.createAt = date;
+note.updateAt = date;
+const text = encryptText(note.text, EUtils.SECOND_KEY);
+const newNote = <INotes>{id: note.id, text: text, title: note.title, userId: note.userId, createAt: note.createAt, updateAt: note.updateAt};
+realm.write(() => {
+  realm.create(NotesSchema.name, newNote);
+});
+return note.id;
+  };
+
+const updateNote = (note: INotes) => {
+
+  realm.write(() => {
+  const _note = <INotes>realm.objectForPrimaryKey(NotesSchema.name, note.id);
+  if(_note){
+
+    _note.text = encryptText(note.text, EUtils.SECOND_KEY);
+    _note.title = note.title;
+    _note.updateAt = new Date();
+  }
+})
+
+};
+
+const deleteNote = (note: INotes) => {
+realm.write(() => {
+  const _note = <INotes>realm.objectForPrimaryKey(NotesSchema.name, note.id);
+  if(_note){
+    realm.delete(_note);
+  }
+})
+}
+
+
 
   //NOTES:END
 
@@ -97,6 +151,10 @@ function useDatabase() {
     // return-notes:BEGIN
     getAllNotes,
     getNoteById,
+    addNote,
+    getAllNotesByUser,
+    updateNote,
+    deleteNote,
     // return-notes:END
 
   };

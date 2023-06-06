@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, {useState, useEffect} from 'react';
 import {
   Text,
   View,
@@ -8,13 +9,20 @@ import {
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import {IProps} from '../core/interface/index';
+import { useDispatch, useSelector } from 'react-redux';
+import useDatabase from '../core/bd/useDatabase';
+import { ENote } from '../core/enums';
+import { IProps, INotes } from '../core/interface/index';
 
 function NotesPage({navigation}: IProps): JSX.Element {
   const [search, setSearch] = useState('');
+  const [notes, setNotes] = useState<INotes[]>([]);
+  const { getAllNotesByUser} = useDatabase();
+  const _user = useSelector((state:any) => state.user);
+  const dispatch = useDispatch();
 
   const onSubmitSearch = () => {
-    console.log('SUBMIT SEARCH', search);
+    // console.log('SUBMIT SEARCH', search);
   };
 
   const handleSearch = (text: string) => {
@@ -27,6 +35,12 @@ function NotesPage({navigation}: IProps): JSX.Element {
 
   const goNew = () => {
     navigation.navigate('NotePage');
+    dispatch({type: ENote.CLEAR_NOTE, });
+  }
+
+  const goEdit = (note: INotes) => {
+    dispatch({type: ENote.SET_NOTE, payload: note});
+    navigation.navigate("NotePage");
   }
 
   const waka = [
@@ -314,9 +328,16 @@ function NotesPage({navigation}: IProps): JSX.Element {
     },
   ];
 
+  useFocusEffect(
+    React.useCallback(() => {
+      setNotes(getAllNotesByUser(_user.id));
+    }, [])
+  );
+
+
   return (
     <View style={styles.container}>
-      <View style={styles.menu}>
+      {/* <View style={styles.menu}>
         <TouchableWithoutFeedback onPress={goConfig}>
           <Icon style={styles.iconMenu} name="gear" size={30} color="white" />
         </TouchableWithoutFeedback>
@@ -328,16 +349,20 @@ function NotesPage({navigation}: IProps): JSX.Element {
           placeholder="buscador..."
           placeholderTextColor="gray"
         />
-      </View>
+      </View> */}
       <ScrollView>
       <View style={styles.scrollBottom}>
         </View>
-        {waka.map((item, index) => (
+        {notes.map((item, index) => (
           <View style={styles.notaContainer} key={index}>
-            <TouchableWithoutFeedback>
+            <TouchableWithoutFeedback onPress={() => goEdit(item)}>
               <View style={styles.nota}>
-                <Text style={styles.notaTitle}>{item.title}</Text>
-                <Text style={styles.notaDate}>{item.updatedAt.toString()}</Text>
+                <Text style={styles.notaTitle}>{item.title.length ? item.title : 'No Title-' + (index + 1)}</Text>
+                <Text style={styles.notaDate}>{item.updateAt ? "Updated: " +
+                item.updateAt.getDate() + '/' +  (item.updateAt.getMonth() + 1 ) + '/' + item.updateAt.getFullYear() + "[" + 
+                item.updateAt.getHours() + ':' + item.updateAt.getMinutes() + "]" : ''} & {item.createAt ? "Created: " +
+                item.createAt.getDate() + '/' +  (item.createAt.getMonth() + 1 ) + '/' + item.createAt.getFullYear() + "[" + 
+                item.createAt.getHours() + ':' + item.createAt.getMinutes() + "]" : ''} </Text>
               </View>
             </TouchableWithoutFeedback>
           </View>

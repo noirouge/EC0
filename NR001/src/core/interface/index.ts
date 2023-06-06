@@ -12,6 +12,7 @@ export interface INotes{
     id: string,
     title: string,
     text: string,
+    userId: string,
     createAt?: Date,
     updateAt?: Date,
 }
