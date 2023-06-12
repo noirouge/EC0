@@ -23,13 +23,13 @@ function NotePage({navigation}: IProps): JSX.Element {
     userId: _user.id,
   });
   const [isEdited, setIsEdited] = useState(false);
-  const saveNote = (note_: INotes) => {
+  const saveNote = async (note_: INotes) => {
     if (note.id.length) {
       // console.log("EXISTE NOTA");
       updateNote({...note_});
     } else {
       // console.log("NO EXISTE NOTA");
-      const id = addNote({...note_});
+      const id = await addNote({...note_});
       if (id.length) {
         setNote({...note_, id: id});
       }
@@ -106,7 +106,10 @@ function NotePage({navigation}: IProps): JSX.Element {
   useEffect(() => {
     // console.log("_NOTE", _note);
     if (_note.id.length) {
-      setNote(getNoteById(_note.id));
+      const doSome = async () => {
+        setNote(await getNoteById(_note.id));
+      };
+      doSome();
     }
   }, []);
 

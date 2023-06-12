@@ -8,16 +8,39 @@ import useConvert from '../../hooks/useConvert';
 
 
 function useDatabase() {
-  const realm = new Realm({
-    schema: [UsersSchema, NotesSchema],
-    schemaVersion: 0,
-  });
+  // const realm = new Realm({
+  //   schema: [UsersSchema, NotesSchema],
+  //   schemaVersion: 0,
+  // });
   const {ID} = useGenerateID();
   const {encryptText, decryptText} = useEncrypter();
   const {convertStringToMb} = useConvert();
+  const schemaObject = {
+    schema: [UsersSchema, NotesSchema],
+    schemaVersion: 0,
+  }
+  // CREATE DATABASE:BEGIN
+
+  const createDB = () =>{
+    const path = Realm.defaultPath;
+    const dbExist = Realm.exists({path: path});
+    if(dbExist){
+      // console.log("YA EXISTE UNA BASE DE DATOS");
+    }else{
+      const realm = new Realm(schemaObject);
+      realm.close();
+      // console.log("NO EXISTE BASE DE DATOS POR ENDE SE HA CREADO UNA NUEVA");
+    }
+  
+  }
+
+  // CREATE DATABASE:END
+
   // USERS:BEGIN
-  const addUser = (user: IUser) => {
-    const _user = <IUser>getUserByName(user);
+  const addUser = async(user: IUser) => {
+    const _user =  <IUser> await getUserByName(user);
+    const realm = await Realm.open(schemaObject);
+    // console.log("ADD USER", realm);
     if (_user.username) {
       // console.log('ESTE USUARIO YA EXISTE');
     } else {
@@ -29,9 +52,12 @@ function useDatabase() {
       realm.write(() => {
         realm.create(UsersSchema.name, user);
       });
-    }
+    };
+    realm.close();
+    // console.log("SE HA CREADO UN NUEVO USUARIO");
   };
-  const getAllUsers = () => {
+  const getAllUsers = async () => {
+    const realm = await Realm.open(schemaObject);
     const users: any = realm.objects(UsersSchema.name);
     const userList: IUser[] = [];
     users.forEach((item: IUser) => {
@@ -45,22 +71,31 @@ function useDatabase() {
     // userList.forEach((item) => {
     //      item.password = decryptText(item.password, EUtils.FIRST_KEY);
     // });
+    realm.close();
+    // console.log("GET ALL USERS", userList);
     return userList;
   };
-  const getUserByName = (user: IUser) => {
-    const users = getAllUsers();
-
+  const getUserByName = async (user: IUser) => {
+    const users = await getAllUsers();
+    const realm = await Realm.open(schemaObject);
     if (users.length) {
-      const _user = users.find(item => item.username === user.username);
+      const _user = <IUser> users.find(item => item.username === user.username);
       if (_user) {
-        return _user;
+        const _user_ = <IUser>{id: _user.id, username: _user.username, password: _user.password, createAt: _user.createAt, updateAt: _user.updateAt };
+        realm.close();
+        // console.log("getUserByName", _user_ );
+        return _user_;
       }
     } else {
+      realm.close();
+      // console.log("getUserByName No Hay Usuario");
       return {};
     }
+    realm.close();
   };
-  const loginUser = (user: IUser) => {
-    const users = getAllUsers();
+  const loginUser = async (user: IUser) => {
+    const users = await getAllUsers();
+    const realm = await Realm.open(schemaObject);
     let isLogin = false;
     let user_ = <IUser>{};
     if (users.length) {
@@ -72,36 +107,47 @@ function useDatabase() {
         }
       }
     }
+    realm.close();
     return {isLogin, user_};
   };
   //USERS:END
 
   //NOTES:BEGIN
-  const getAllNotes = () => {
+  const getAllNotes = async () => {
+    // console.log("GetAllNotes");
+    const realm = await Realm.open(schemaObject);
     const notes = realm.objects(NotesSchema.name);
     // console.log("WAKA WAKA", notes);
-    return Array.from(notes);
+    const notesArray = Array.from(notes);
+    // realm.close();
+    // console.log("GET ALL NOTES", notesArray);
+    return {realm,notesArray};
   };
 
-  const getAllNotesByUser = (id: string) => {
-    const notes:any = getAllNotes();
-    const _notes = notes.filter((item:INotes )=> item.userId === id);
-    const listNotes = <INotes[]>[];
+  const getAllNotesByUser = async (id: string) => {
+    const {realm, notesArray} = await getAllNotes();
+    // console.log("getAllNotesByUser", notesArray);
+    const _notes = notesArray.filter((item:any )=> item.userId === id);
+    const listNotes = <any[]>[];
    if(_notes.length){
-     _notes.forEach((element: INotes) => {
+     _notes.forEach((element: any) => {
        listNotes.push({id: element.id, title: element.title, userId: element.userId, createAt: element.createAt, updateAt: element.updateAt, text: element.text, });
       });
-   }
+   };
+   realm.close();
     return listNotes.sort((a:any,b:any) =>  b.updateAt.getTime() - a.updateAt.getTime());
   }
 
-  const getNoteById = (id: string) => {
+  const getNoteById = async (id: string) => {
+    const realm = await Realm.open(schemaObject);
     const note:any = <INotes>realm.objectForPrimaryKey(NotesSchema.name, id);
     const _note = <INotes>{id: note.id, title: note.title, userId: note.userId, createAt: note.createAt, updateAt: note.updateAt,text: decryptText(note.text, EUtils.SECOND_KEY)};
+    realm.close();
     return _note;
   };
 
-  const addNote = (note: INotes) => {
+  const addNote = async (note: INotes) => {
+    const realm = await Realm.open(schemaObject);
 note.id = ID;
 const date = new Date();
 note.createAt = date;
@@ -111,10 +157,13 @@ const newNote = <INotes>{id: note.id, text: text, title: note.title, userId: not
 realm.write(() => {
   realm.create(NotesSchema.name, newNote);
 });
+// console.log("ADD NOTE", note);
+realm.close();
 return note.id;
   };
 
-const updateNote = (note: INotes) => {
+const updateNote = async (note: INotes) => {
+  const realm = await Realm.open(schemaObject);
 
   realm.write(() => {
   const _note = <INotes>realm.objectForPrimaryKey(NotesSchema.name, note.id);
@@ -125,16 +174,18 @@ const updateNote = (note: INotes) => {
     _note.updateAt = new Date();
   }
 })
-
+realm.close();
 };
 
-const deleteNote = (note: INotes) => {
+const deleteNote = async (note: INotes) => {
+  const realm = await Realm.open(schemaObject);
 realm.write(() => {
   const _note = <INotes>realm.objectForPrimaryKey(NotesSchema.name, note.id);
   if(_note){
     realm.delete(_note);
   }
-})
+}); 
+realm.close();
 }
 
 
@@ -156,7 +207,7 @@ realm.write(() => {
     updateNote,
     deleteNote,
     // return-notes:END
-
+    createDB,
   };
 }
 

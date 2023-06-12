@@ -39,10 +39,10 @@ function LoginPage({navigation}: IProps): JSX.Element {
     setUser({...user, password: text});
   };
 
-  const login = () => {
+  const login = async () => {
     // console.log("USER STORE", _user)
-    const {isLogin, user_} = loginUser(user);
-    const users: IUser[] = getAllUsers();
+    const {isLogin, user_} = await loginUser(user);
+    const users: IUser[] = await getAllUsers();
     if(user.username.length === 0 || user.password.length === 0){
       // console.log("UN CAMPO ESTA VACIO");
       return;

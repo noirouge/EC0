@@ -2,9 +2,11 @@ import React, {useEffect, useState} from 'react';
 import {Text, View, StyleSheet, TouchableWithoutFeedback} from 'react-native';
 import {NavigationProp, useFocusEffect} from '@react-navigation/native';
 import {IProps} from '../core/interface/index';
+import useDatabase from '../core/bd/useDatabase';
 
 function MainPage({navigation}: IProps): JSX.Element {
   const [pattern, setPattern] = useState('');
+  const {createDB} = useDatabase();
   const verifyPattern = (p: string) => {
     const newPattern = pattern + p;
     setPattern(newPattern);
@@ -18,6 +20,10 @@ function MainPage({navigation}: IProps): JSX.Element {
       setPattern('');
     }, []),
   );
+
+  useEffect(() => {
+    createDB();
+  }, []);
 
   return (
     <View style={{...styles.container, ...styles.w100}}>
